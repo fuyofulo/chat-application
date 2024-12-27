@@ -18,7 +18,7 @@ const RoomChat: React.FC = () => {
   };
 
   useEffect(() => {
-    const websocket = new WebSocket("wss://localhost:8080");
+    const websocket = new WebSocket("wss://roomchat123.onrender.com");
     websocketRef.current = websocket;
 
     websocket.onopen = () => {
