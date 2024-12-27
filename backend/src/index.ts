@@ -31,7 +31,7 @@ wss.on("connection", (socket) => {
             roomUsers.forEach((user) =>
                 user.socket.send(
                     JSON.stringify({
-                        type: "updateUsers",
+                        type: "userCount", // Updated to match frontend
                         payload: { count: userCount },
                     })
                 )
@@ -83,7 +83,7 @@ wss.on("connection", (socket) => {
             roomUsers.forEach((user) =>
                 user.socket.send(
                     JSON.stringify({
-                        type: "updateUsers",
+                        type: "userCount", // Updated to match frontend
                         payload: { count: userCount },
                     })
                 )

@@ -92,6 +92,7 @@ export default function Card () {
         }
 
         localStorage.setItem("roomId", userRoomId);
+        localStorage.setItem("username", username);
         navigate(`/chatroom`);
     }
 
