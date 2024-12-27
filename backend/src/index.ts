@@ -5,39 +5,89 @@ const wss = new WebSocketServer({ port: 8080 });
 interface User {
     socket: WebSocket;
     room: string;
+    username?: string;
 }
 
 let allSockets: User[] = [];
 
 wss.on("connection", (socket) => {
+    console.log("New client connected");
 
-    socket.on("message", (message) => {
-        //@ts-ignore
+    socket.on("message", (message: any) => {
         const parsedMessage = JSON.parse(message);
-        if(parsedMessage.type == "join") {
-            console.log("user joined the room "+ parsedMessage.payload.roomId);
-            allSockets.push({
-                socket,
-                room: parsedMessage.payload.roomId
-            })
-        }
 
-        if (parsedMessage.type == "chat") {
-            console.log("user wants to chat");
-            let currentUserRoom = null;
-            for (let i = 0; i < allSockets.length; i++) {
-                if (allSockets[i].socket == socket) {
-                    currentUserRoom = allSockets[i].room;
-                }
+        if (parsedMessage.type === "join") {
+            const { roomId, username } = parsedMessage.payload;
+
+            console.log(`User joined room: ${roomId} (${username || "Anonymous"})`);
+
+            // Add the user to the room
+            allSockets.push({ socket, room: roomId, username });
+
+            // Broadcast updated user count to all users in the room
+            const roomUsers = allSockets.filter((user) => user.room === roomId);
+            const userCount = roomUsers.length;
+
+            roomUsers.forEach((user) =>
+                user.socket.send(
+                    JSON.stringify({
+                        type: "updateUsers",
+                        payload: { count: userCount },
+                    })
+                )
+            );
+
+            // Acknowledge the room join
+            socket.send(
+                JSON.stringify({
+                    status: "success",
+                    message: "Room joined successfully",
+                    roomId,
+                })
+            );
+        } else if (parsedMessage.type === "chat") {
+            const currentUserRoom = allSockets.find((user) => user.socket === socket)?.room;
+
+            if (currentUserRoom) {
+                const currentUsername = allSockets.find((user) => user.socket === socket)?.username || "Anonymous";
+
+                allSockets
+                    .filter((user) => user.room === currentUserRoom && user.socket !== socket) // Exclude sender's socket
+                    .forEach((user) =>
+                        user.socket.send(
+                            JSON.stringify({
+                                type: "chat",
+                                payload: { username: currentUsername, message: parsedMessage.payload.message },
+                            })
+                        )
+                    );
+
+                console.log(`Message sent to room ${currentUserRoom}:`, parsedMessage.payload.message);
             }
-
-            for (let i = 0; i < allSockets.length; i++) {
-                if (allSockets[i].room == currentUserRoom) {
-                    allSockets[i].socket.send(parsedMessage.payload.message)
-                    console.log(parsedMessage.payload.message);
-                }
-            }
         }
+    });
 
-    })
-})
+    socket.on("close", () => {
+        console.log("Client disconnected");
+
+        // Remove user from allSockets and update user counts
+        const disconnectedUser = allSockets.find((user) => user.socket === socket);
+        if (disconnectedUser) {
+            const roomId = disconnectedUser.room;
+            allSockets = allSockets.filter((user) => user.socket !== socket);
+
+            // Update user count for the room
+            const roomUsers = allSockets.filter((user) => user.room === roomId);
+            const userCount = roomUsers.length;
+
+            roomUsers.forEach((user) =>
+                user.socket.send(
+                    JSON.stringify({
+                        type: "updateUsers",
+                        payload: { count: userCount },
+                    })
+                )
+            );
+        }
+    });
+});
