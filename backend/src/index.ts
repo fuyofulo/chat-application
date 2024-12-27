@@ -10,7 +10,7 @@ interface User {
 
 let allSockets: User[] = [];
 
-wss.on("connection", (socket) => {
+wss.on("connection", (socket: WebSocket) => {
     console.log("New client connected");
 
     socket.on("message", (message: any) => {
