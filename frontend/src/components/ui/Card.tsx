@@ -9,7 +9,7 @@ export default function Card () {
 
 
     useEffect(() => {
-        const websocket = new WebSocket("ws://roomchat123.onrender.com");
+        const websocket = new WebSocket("wss://roomchat123.onrender.com");
         websocket.onopen = () => {
             console.log("WebSocket connection established!");
         };
