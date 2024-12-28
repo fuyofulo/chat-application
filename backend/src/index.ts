@@ -62,7 +62,7 @@ wss.on("connection", (socket: WebSocket) => {
                         )
                     );
 
-                console.log(`Message sent to room ${currentUserRoom}:`, parsedMessage.payload.message);
+                console.log(`room ${currentUserRoom}:`, parsedMessage.payload.message, `by`, currentUsername);
             }
         }
     });
