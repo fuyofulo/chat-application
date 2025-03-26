@@ -4,7 +4,8 @@ import { FaGithub, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
 
 export default function Card () {
 
-    const websocketRef = useRef<WebSocket | null>(null);
+    const websocketRef = useRef<WebSocket | nu\
+    ll>(null);
     const navigate = useNavigate();
 
 
